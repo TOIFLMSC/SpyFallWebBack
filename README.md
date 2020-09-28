@@ -1,2 +1,2 @@
 # SpyFallWebBack
-SpyFall - browser game.
+Backend of a browser game SpyFall.
