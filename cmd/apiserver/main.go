@@ -1,49 +1,54 @@
-// package main
+package main
 
-// import (
-// 	"flag"
-// 	"log"
+import (
+	"flag"
+	"log"
 
-// 	"github.com/BurntSushi/toml"
+	"github.com/BurntSushi/toml"
+	"github.com/TOIFLMSC/spyfall-web-backend/internal/app/apiserver"
+	"github.com/joho/godotenv"
+)
 
-// 	"github.com/TOIFLMSC/spyfall-web-backend/internal/app/apiserver"
-// )
+var (
+	configPath string
+)
 
-// var (
-// 	configPath string
-// )
+func init() {
+	flag.StringVar(&configPath, "config-path", "configs/apiserver.toml", "path to config file")
+}
 
-// func init () {
-// 	flag.StringVar(&configPath, "config-path", "configs/apiserver.toml", "path to config file")
-// }
+func main() {
+	flag.Parse()
 
-// func main() {
-// 	flag.Parse()
+	e := godotenv.Load()
+	if e != nil {
+		log.Fatal(e)
+	}
 
-// 	config := apiserver.NewConfig()
+	config := apiserver.NewConfig()
 
-// 	_, err := toml.DecodeFile(configPath, config)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
+	_, err := toml.DecodeFile(configPath, config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// 	if err := apiserver.Start(config); err != nil {
-// 		log.Fatal(err)
-// 	}
-// router := mux.NewRouter()
+	if err := apiserver.Start(config); err != nil {
+		log.Fatal(err)
+	}
+	// router := mux.NewRouter()
 
-// router.HandleFunc("/play/newlobby", controllers.CreateLobby).Methods("POST")
-// router.HandleFunc("/play/connect/{token}/lobby", controllers.ConnectLobby).Methods("GET")
+	// router.HandleFunc("/play/newlobby", controllers.CreateLobby).Methods("POST")
+	// router.HandleFunc("/play/connect/{token}/lobby", controllers.ConnectLobby).Methods("GET")
 
-// port := os.Getenv("PORT")
-// if port == "" {
-// 	port = "8000"
-// }
+	// port := os.Getenv("PORT")
+	// if port == "" {
+	// 	port = "8000"
+	// }
 
-// err := http.ListenAndServe(":"+port, router)
-// if err != nil {
-// 	fmt.Print(err)
-// } else {
-// 	fmt.Println("Server is working on port ", port)
-// }
-//}
+	// err := http.ListenAndServe(":"+port, router)
+	// if err != nil {
+	// 	fmt.Print(err)
+	// } else {
+	// 	fmt.Println("Server is working on port ", port)
+	// }
+}

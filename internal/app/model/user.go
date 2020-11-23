@@ -1,5 +1,13 @@
 package model
 
+import "github.com/dgrijalva/jwt-go"
+
+// Token type
+type Token struct {
+	UserId uint
+	jwt.StandardClaims
+}
+
 // User type
 type User struct {
 	ID       int    `json:"id"`
