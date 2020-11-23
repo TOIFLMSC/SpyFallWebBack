@@ -56,7 +56,7 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 			return []byte(os.Getenv("token_password")), nil
 		})
 
-		if err != bil {
+		if err != nil {
 			response = u.Message(false, "Malformed authentication token")
 			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
