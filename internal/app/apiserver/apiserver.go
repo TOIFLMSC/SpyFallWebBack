@@ -7,6 +7,7 @@ import (
 	"github.com/TOIFLMSC/spyfall-web-backend/internal/app/store/sqlstore"
 )
 
+// Start func
 func Start(config *Config) error {
 	db, err := newDB(config.DatabaseURL)
 	if err != nil {
@@ -21,6 +22,7 @@ func Start(config *Config) error {
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 
+// newDB func
 func newDB(databaseURL string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", databaseURL)
 	if err != nil {

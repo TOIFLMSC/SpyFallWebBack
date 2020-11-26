@@ -15,3 +15,9 @@ func Respond(w http.ResponseWriter, data map[string]interface{}) {
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
+
+// Error func
+func Error(w http.ResponseWriter, code int, err error) {
+	w.WriteHeader(code)
+	Respond(w, map[string]interface{}{"error": err.Error()})
+}

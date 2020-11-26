@@ -13,4 +13,5 @@ type UserRepository interface {
 type LobbyRepository interface {
 	Create(*model.Lobby) error
 	FindByToken(string) (*model.Lobby, error)
+	CheckStatus(string) (string, error)
 }
