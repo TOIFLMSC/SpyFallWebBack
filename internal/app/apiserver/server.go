@@ -3,9 +3,12 @@ package apiserver
 import (
 	"encoding/json"
 	"errors"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/TOIFLMSC/spyfall-web-backend/internal/app/jwt"
 	"github.com/TOIFLMSC/spyfall-web-backend/internal/app/model"
@@ -43,7 +46,8 @@ func (s *server) configureRouter() {
 	s.router.Use(handlers.CORS(handlers.AllowedOrigins([]string{"*"})))
 	s.router.Use(jwt.JwtAuthentication)
 	s.router.Use(s.logRequest)
-	s.router.HandleFunc("/user/new", s.usersCreateHandler()).Methods("POST")
+	s.router.HandleFunc("/user/new", s.createUser()).Methods("POST")
+	s.router.HandleFunc("/user/login", s.logUser()).Methods("POST")
 }
 
 func (s *server) logRequest(next http.Handler) http.Handler {
@@ -79,7 +83,7 @@ func (s *server) logRequest(next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) usersCreateHandler() http.HandlerFunc {
+func (s *server) createUser() http.HandlerFunc {
 
 	type request struct {
 		Login    string `json:"login"`
@@ -95,36 +99,108 @@ func (s *server) usersCreateHandler() http.HandlerFunc {
 			return
 		}
 
-		um := &model.User{
+		usermodel := &model.User{
 			Login:    req.Login,
 			Password: req.Password,
 		}
 
-		if err := s.store.User().Create(um); err != nil {
+		checkUser, err := s.store.User().FindByLogin(req.Login)
+		if checkUser != nil {
+			response := u.Message(false, "This username is already used. Please try another username or reauthorize")
+			u.Respond(w, response)
+			return
+		}
+
+		if err := s.store.User().Create(usermodel); err != nil {
 			u.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 
-		loc, err := s.store.User().FindByLogin(req.Login)
+		locUser, err := s.store.User().FindByLogin(req.Login)
 		if err != nil {
 			u.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 
-		if loc.ID <= 0 {
+		if locUser.ID <= 0 {
 			u.Error(w, http.StatusNotFound, errors.New("Failed to create account"))
 			return
 		}
 
+		tk := &model.Token{UserID: uint(locUser.ID)}
+		token := jwtg.NewWithClaims(jwtg.GetSigningMethod("HS256"), tk)
+		tokenString, _ := token.SignedString([]byte(os.Getenv("token_password")))
+		locUser.Token = tokenString
+
+		locUser.Sanitize()
+
+		response := u.Message(true, "Account has been created")
+		response["account"] = locUser
+		u.Respond(w, response)
+	}
+}
+
+func (s *server) logUser() http.HandlerFunc {
+
+	type request struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		req := &request{}
+
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			u.Error(w, http.StatusBadRequest, err)
+			return
+		}
+
+		usermodel := &model.User{
+			Login:    req.Login,
+			Password: req.Password,
+		}
+
+		loc, err := s.store.User().FindByLogin(req.Login)
+		if err != nil && loc == nil {
+			u.Error(w, http.StatusUnauthorized, err)
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(req.Password), []byte(loc.Password))
+		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+			response := u.Message(false, "Invalid login credentials. Please try again")
+			u.Respond(w, response)
+			return
+		}
+
+		usermodel.Sanitize()
+
 		tk := &model.Token{UserID: uint(loc.ID)}
 		token := jwtg.NewWithClaims(jwtg.GetSigningMethod("HS256"), tk)
 		tokenString, _ := token.SignedString([]byte(os.Getenv("token_password")))
-		loc.Token = tokenString
+		usermodel.Token = tokenString
 
-		loc.Sanitize()
-
-		response := u.Message(true, "Account has been created")
-		response["account"] = loc
+		response := u.Message(true, "Logged in")
+		response["account"] = usermodel
 		u.Respond(w, response)
 	}
+}
+
+// LocationsGenerator func
+func LocationsGenerator() ([]string, string) {
+	locations := []string{"Bank", "Hospital", "Military unit", "Casino",
+		"Hollywood", "Titanic", "The Death Star", "Hotel",
+		"Russian Railways", "Malibu Beach", "Police Station",
+		"Restaurant", "University", "Lyceum", "SPA", "Plane"}
+	rand.Seed(time.Now().UnixNano())
+	locarray := locations
+	var finallocarray []string = make([]string, 0, 20)
+	for i := 12; i > 0; i-- {
+		a := rand.Intn(i)
+		finallocarray = append(finallocarray, locarray[a])
+		locarray = append(locarray[:a], locarray[a+1:]...)
+	}
+	b := rand.Intn(12)
+	return finallocarray, finallocarray[b]
 }
