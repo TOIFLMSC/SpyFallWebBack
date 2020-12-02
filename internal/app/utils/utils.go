@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -20,4 +22,11 @@ func Respond(w http.ResponseWriter, data map[string]interface{}) {
 func Error(w http.ResponseWriter, code int, err error) {
 	w.WriteHeader(code)
 	Respond(w, map[string]interface{}{"error": err.Error()})
+}
+
+// TokenGenerator func
+func TokenGenerator() string {
+	b := make([]byte, 3)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
