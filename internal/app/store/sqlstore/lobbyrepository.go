@@ -5,6 +5,7 @@ import (
 
 	"github.com/TOIFLMSC/spyfall-web-backend/internal/app/model"
 	"github.com/TOIFLMSC/spyfall-web-backend/internal/app/store"
+	"github.com/lib/pq"
 )
 
 // LobbyRepository struct
@@ -17,12 +18,12 @@ func (r *LobbyRepository) Create(l *model.Lobby) error {
 
 	return r.store.db.QueryRow("INSERT INTO lobbies (token, locations, currentlocation, amountpl, amountspy, spyplayers, allplayers, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING token",
 		l.Token,
-		l.Locations,
+		pq.Array(l.Locations),
 		l.CurrentLocation,
 		l.AmountPl,
 		l.AmountSpy,
-		l.SpyPlayers,
-		l.AllPlayers,
+		pq.Array(l.SpyPlayers),
+		pq.Array(l.AllPlayers),
 		l.Status,
 	).Scan(&l.Token)
 }
@@ -35,12 +36,12 @@ func (r *LobbyRepository) FindByToken(token string) (*model.Lobby, error) {
 		token,
 	).Scan(
 		&l.Token,
-		&l.Locations,
+		pq.Array(&l.Locations),
 		&l.CurrentLocation,
 		&l.AmountPl,
 		&l.AmountSpy,
-		&l.SpyPlayers,
-		&l.AllPlayers,
+		pq.Array(&l.SpyPlayers),
+		pq.Array(&l.AllPlayers),
 		&l.Status,
 	); err != nil {
 		if err == sql.ErrNoRows {
