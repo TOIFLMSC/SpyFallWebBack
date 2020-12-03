@@ -48,6 +48,7 @@ func (s *server) configureRouter() {
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/user/new", s.createUser()).Methods("POST")
 	s.router.HandleFunc("/user/login", s.logUser()).Methods("POST")
+	s.router.HandleFunc("/lobby/create", s.createLobby()).Methods("POST")
 }
 
 func (s *server) logRequest(next http.Handler) http.Handler {
@@ -183,6 +184,55 @@ func (s *server) logUser() http.HandlerFunc {
 
 		response := u.Message(true, "Logged in")
 		response["account"] = usermodel
+		u.Respond(w, response)
+	}
+}
+
+func (s *server) createLobby() http.HandlerFunc {
+
+	type request struct {
+		AmountPl  int `json:"amountpl"`
+		AmountSpy int `json:"amountspy"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		req := &request{}
+
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			u.Error(w, http.StatusBadRequest, err)
+			return
+		}
+
+		lobbymodel := &model.Lobby{
+			AmountPl:  req.AmountPl,
+			AmountSpy: req.AmountSpy,
+		}
+
+		token := u.TokenGenerator()
+		for lobbymodel, err := s.store.Lobby().FindByToken(token); lobbymodel != nil && err == nil; {
+			token = u.TokenGenerator()
+		}
+
+		lobbymodel.Token = token
+
+		lobbymodel.Locations, lobbymodel.CurrentLocation = LocationsGenerator()
+
+		lobbymodel.Status = "Created"
+
+		if err := s.store.Lobby().Create(lobbymodel); err != nil {
+			u.Error(w, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		currentlobby, err := s.store.Lobby().FindByToken(lobbymodel.Token)
+		if err != nil {
+			u.Error(w, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		response := u.Message(true, "Lobby has been created")
+		response["lobby"] = currentlobby
 		u.Respond(w, response)
 	}
 }
