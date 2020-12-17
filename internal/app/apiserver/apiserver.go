@@ -19,7 +19,13 @@ func Start(config *Config) error {
 
 	srv := newServer(store)
 
-	return http.ListenAndServe(config.BindAddr, srv)
+	go func() {
+		http.ListenAndServe(config.BindAddr, srv)
+	}()
+
+	select {}
+
+	return nil
 }
 
 // newDB func
