@@ -35,20 +35,5 @@ func main() {
 	if err := apiserver.Start(config); err != nil {
 		log.Fatal(err)
 	}
-	// router := mux.NewRouter()
 
-	// router.HandleFunc("/play/newlobby", controllers.CreateLobby).Methods("POST")
-	// router.HandleFunc("/play/connect/{token}/lobby", controllers.ConnectLobby).Methods("GET")
-
-	// port := os.Getenv("PORT")
-	// if port == "" {
-	// 	port = "8000"
-	// }
-
-	// err := http.ListenAndServe(":"+port, router)
-	// if err != nil {
-	// 	fmt.Print(err)
-	// } else {
-	// 	fmt.Println("Server is working on port ", port)
-	// }
 }
