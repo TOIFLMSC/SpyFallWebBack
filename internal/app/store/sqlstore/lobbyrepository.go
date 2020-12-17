@@ -28,6 +28,51 @@ func (r *LobbyRepository) Create(l *model.Lobby) error {
 	).Scan(&l.Token)
 }
 
+// ConnectUserToLobby func
+func (r *LobbyRepository) ConnectUserToLobby(l *model.Lobby) error {
+
+	return r.store.db.QueryRow("UPDATE lobbies SET allplayers = $1 WHERE token = $2 RETURNING allplayers",
+		pq.Array(l.AllPlayers),
+		l.Token,
+	).Scan(pq.Array(&l.AllPlayers))
+}
+
+// ChooseSpyPlayersInLobby func
+func (r *LobbyRepository) ChooseSpyPlayersInLobby(l *model.Lobby) error {
+
+	return r.store.db.QueryRow("UPDATE lobbies SET spyplayers = $1 WHERE token = $2 RETURNING spyplayers",
+		pq.Array(l.SpyPlayers),
+		l.Token,
+	).Scan(pq.Array(&l.SpyPlayers))
+}
+
+// StartGame func
+func (r *LobbyRepository) StartGame(l *model.Lobby) error {
+
+	return r.store.db.QueryRow("UPDATE lobbies SET status = $1 WHERE token = $2 RETURNING status",
+		"Started",
+		l.Token,
+	).Scan(&l.Token)
+}
+
+// WonForSpy func
+func (r *LobbyRepository) WonForSpy(l *model.Lobby) (string, error) {
+
+	return "Spy won", r.store.db.QueryRow("UPDATE lobbies SET status = $1 WHERE token = $2 RETURNING status",
+		"Spy won",
+		l.Token,
+	).Scan(&l.Status)
+}
+
+// WonForPeaceful func
+func (r *LobbyRepository) WonForPeaceful(l *model.Lobby) (string, error) {
+
+	return "Peaceful won", r.store.db.QueryRow("UPDATE lobbies SET status = $1 WHERE token = $2 RETURNING status",
+		"Peaceful won",
+		l.Token,
+	).Scan(&l.Status)
+}
+
 // FindByToken func
 func (r *LobbyRepository) FindByToken(token string) (*model.Lobby, error) {
 	l := &model.Lobby{}
