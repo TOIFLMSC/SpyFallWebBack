@@ -14,4 +14,9 @@ type LobbyRepository interface {
 	Create(*model.Lobby) error
 	FindByToken(string) (*model.Lobby, error)
 	CheckStatus(string) (string, error)
+	ConnectUserToLobby(*model.Lobby) error
+	StartGame(*model.Lobby) error
+	WonForSpy(*model.Lobby) (string, error)
+	WonForPeaceful(*model.Lobby) (string, error)
+	ChooseSpyPlayersInLobby(*model.Lobby) error
 }
