@@ -18,13 +18,6 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// w.Header().Add("Access-Control-Allow-Origin", "*")
-		// w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Origin, Accept, token, Authorization")
-		// w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, HEAD, OPTIONS")
-		// w.Header().Add("Vary", "Origin")
-		// w.Header().Add("Vary", "Access-Control-Request-Method")
-		// w.Header().Add("Vary", "Access-Control-Request-Headers")
-
 		notAuth := []string{"/user/new", "/user/login"}
 		requestPath := r.URL.Path
 
