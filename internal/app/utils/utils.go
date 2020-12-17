@@ -30,3 +30,13 @@ func TokenGenerator() string {
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)
 }
+
+// Contains func
+func Contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}
