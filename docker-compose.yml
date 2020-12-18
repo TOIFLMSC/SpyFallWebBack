@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  spyfall: 
+    build: ./
+    command: ./wait-for-postgres.sh db ./spyfall
+    ports: 
+      - 8080:8080
+    depends_on:
+      - db
+    environment:
+      - token_password=8fv875h8vuw87hg5g87hg387g8hg3o85
+  
+  db:
+    restart: always 
+    image: postgres:latest
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    ports:
+      - 5434:5432
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
